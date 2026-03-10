@@ -58,6 +58,7 @@ function addListeners() {
             if (heartBeatingAnimation) {
                 heartBeatingAnimation.stop();
             }
+
         });
 
     document.getElementById('heartBeatingReset')
@@ -67,6 +68,17 @@ function addListeners() {
                 heartBeatingAnimation = null;
             }
         });
+    document.getElementById('moveAndHideReset')
+    .addEventListener('click', function () {
+        const block = document.getElementById('moveAndHideBlock');
+        animator.resetMoveAndHide(block);
+    });
+
+    document.getElementById('moyaANimatSIA')
+    .addEventListener('click', function () {
+        const block = document.getElementById('moyaANimatSIABlock');
+        animator.colorChanging(block, 1000);
+    });
 }
 
 function getTransform(translation, ratio) {
@@ -119,6 +131,18 @@ function animaster() {
         });
         return this;
     }
+<<<<<<< HEAD
+=======
+
+    function addColor(duration, red, green, blue) {
+        _steps.push({
+            type: 'color',
+            duration,
+            color: `rgb(${red}, ${green}, ${blue})`
+        });
+        return this;
+    }
+>>>>>>> 319dc14 (added color)
 
     function addDelay(duration) {
         steps.push({
@@ -178,10 +202,40 @@ function animaster() {
 
             let delay = 0;
 
+<<<<<<< HEAD
             for (const step of steps) {
                 const timerId = setTimeout(() => {
                     if (isStopped) {
                         return;
+=======
+                const timer = setTimeout(() => {
+
+                    if (step.type === 'move') {
+                        element.style.transitionDuration = `${step.duration}ms`;
+                        element.style.transform = getTransform(step.translation, null);
+                    }
+
+                    else if (step.type === 'scale') {
+                        element.style.transitionDuration = `${step.duration}ms`;
+                        element.style.transform = getTransform(null, step.ratio);
+                    }
+
+                    else if (step.type === 'fadeIn') {
+                        element.style.transitionDuration = `${step.duration}ms`;
+                        element.classList.remove('hide');
+                        element.classList.add('show');
+                    }
+
+                    else if (step.type === 'fadeOut') {
+                        element.style.transitionDuration = `${step.duration}ms`;
+                        element.classList.remove('show');
+                        element.classList.add('hide');
+                    }
+                    else if (step.type === 'color') {
+                        element.style.transitionDuration = `${step.duration}ms`;
+                        element.style.transitionProperty = 'background-color';
+                        element.style.backgroundColor = step.color;
+>>>>>>> 319dc14 (added color)
                     }
 
                     applyStep(step);
@@ -202,7 +256,7 @@ function animaster() {
 
         run();
 
-        return {
+        const controller = {
             stop() {
                 isStopped = true;
                 timers.forEach((timerId) => clearTimeout(timerId));
@@ -216,6 +270,10 @@ function animaster() {
                 element.className = initialState.className;
             }
         };
+
+        _steps.length = 0;
+
+        return controller;
     }
 
     function move(element, duration, translation) {
@@ -263,11 +321,28 @@ function animaster() {
             .addScale(duration / 2, 1)
             .play(element, true);
     }
+<<<<<<< HEAD
 
     function colorChanging(element, duration) {
         return animaster()
             .addColor(duration / 2, 255, 0, 0)
             .addColor(duration / 2, 0, 0, 255)
+=======
+    function colorChanging(element, duration) {
+        return animaster()
+            .addMove(duration, {x:50,y:0})
+            .addColor(duration,255,0,0)
+
+            .addMove(duration, {x:50,y:50})
+            .addColor(duration,0,255,0)
+
+            .addMove(duration, {x:0,y:50})
+            .addColor(duration,0,0,255)
+
+            .addMove(duration, {x:0,y:0})
+            .addColor(duration,255,255,0)
+
+>>>>>>> 319dc14 (added color)
             .play(element, true);
     }
 
@@ -286,6 +361,7 @@ function animaster() {
         moveAndHide,
         showAndHide,
         heartBeating,
-        colorChanging
+        colorChanging,
+        addColor
     };
 }
