@@ -28,7 +28,19 @@ function addListeners() {
     document.getElementById('moveAndHidePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('moveAndHideBlock');
-            animator.scale(block, 1000, 1.25);
+            animator.moveAndHide(block, 1000);
+        });
+
+    document.getElementById('showAndHidePlay')
+        .addEventListener('click', function () {
+            const block = document.getElementById('showAndHideBlock');
+            animator.showAndHide(block, 1000);
+        });
+
+    document.getElementById('heartBeatingPlay')
+        .addEventListener('click', function () {
+            const block = document.getElementById('heartBeatingBlock');
+            animator.heartBeating(block, 1000);
         });
     document.getElementById('moveAndHideReset')
     .addEventListener('click', function () {
@@ -47,7 +59,6 @@ function getTransform(translation, ratio) {
     }
     return result.join(' ');
 }
-
 
 function animaster() {
     const _steps = []
@@ -80,6 +91,11 @@ function animaster() {
         element.style.transform = getTransform(translation, null);
     }
 
+    /**
+     * Блок плавно появляется из прозрачного.
+     * @param element — HTMLElement, который надо анимировать
+     * @param duration — Продолжительность анимации в миллисекундах
+     */
     function fadeIn(element, duration) {
         element.style.transitionDuration = `${duration}ms`;
         element.classList.remove('hide');
@@ -92,6 +108,12 @@ function animaster() {
         element.classList.add('hide');
     }
 
+    /**
+     * Функция, увеличивающая/уменьшающая элемент
+     * @param element — HTMLElement, который надо анимировать
+     * @param duration — Продолжительность анимации в миллисекундах
+     * @param ratio — во сколько раз увеличить/уменьшить. Чтобы уменьшить, нужно передать значение меньше 1
+     */
     function scale(element, duration, ratio) {
         element.style.transitionDuration = `${duration}ms`;
         element.style.transform = getTransform(null, ratio);
@@ -101,6 +123,31 @@ function animaster() {
 
         const moveDuration = duration * 2 / 5;
 
+        move(element, moveDuration, {x: 100, y: 20});
+
+        moveAndHideTimer = setTimeout(() => {
+            fadeOut(element, duration * 3 / 5);
+        }, moveDuration);
+    }
+
+    function showAndHide(element, duration) {
+        this.fadeIn(element, duration / 3);
+        setTimeout(() => {
+            fadeOut(element, duration / 3);
+        }, duration * 2 / 3);
+    }
+
+    function heartBeating(element, duration) {
+        const beat = () => {
+            scale(element, duration / 2, 1.4);
+
+            setTimeout(() => {
+                scale(element, duration / 2, 1);
+            }, duration / 2);
+        };
+
+        beat();
+        return setInterval(beat, duration);
         move(element, moveDuration, {x: 100, y: 20});
 
         moveAndHideTimer = setTimeout(() => {
@@ -132,6 +179,8 @@ function animaster() {
     }
 
     return {
+        showAndHide,
+        heartBeating,
         _steps,
         move,
         fadeIn,
