@@ -16,7 +16,7 @@ function addListeners() {
     document.getElementById('movePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('moveBlock');
-            animator.move(block, 1000, {x: 100, y: 10});
+            animator.addMove(500, {x:20, y:20}).play(block);
         });
 
     document.getElementById('scalePlay')
@@ -50,6 +50,28 @@ function getTransform(translation, ratio) {
 
 
 function animaster() {
+    const _steps = []
+
+    function addMove(duration, translation) {
+        _steps.push({
+            type: 'move',
+            duration: duration,
+            translation: translation
+        });
+        return this;
+    }
+
+    function play(element) {
+        let delay = 0;
+        for(const step of _steps) {
+            setTimeout(() => {
+                if(step.type === 'move') {
+                    move(element, step.duration, step.translation);
+                }
+            });
+            delay += step.duration;
+        }
+    }
 
     let moveAndHideTimer = null;
 
@@ -104,19 +126,20 @@ function animaster() {
     }
 
     function resetMoveAndHide(element) {
-
         clearTimeout(moveAndHideTimer);
-
         resetMoveAndScale(element);
         resetFadeOut(element);
     }
 
     return {
+        _steps,
         move,
         fadeIn,
         fadeOut,
         scale,
         moveAndHide,
-        resetMoveAndHide
+        resetMoveAndHide,
+        addMove,
+        play,
     }
 }
