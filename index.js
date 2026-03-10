@@ -1,5 +1,6 @@
 const animator = animaster();
 addListeners();
+let heartBeatingAnimation = null;
 
 function addListeners() {
     document.getElementById('fadeInPlay')
@@ -40,8 +41,22 @@ function addListeners() {
     document.getElementById('heartBeatingPlay')
         .addEventListener('click', function () {
             const block = document.getElementById('heartBeatingBlock');
-            animator.heartBeating(block, 1000);
+
+            if (heartBeatingAnimation) {
+                heartBeatingAnimation.stop();
+            }
+
+            heartBeatingAnimation = animator.heartBeating(block, 1000);
         });
+
+    document.getElementById('heartBeatingStop')
+        .addEventListener('click', function () {
+            if (heartBeatingAnimation) {
+                heartBeatingAnimation.stop();
+                heartBeatingAnimation = null;
+            }
+        });
+
     document.getElementById('moveAndHideReset')
     .addEventListener('click', function () {
         const block = document.getElementById('moveAndHideBlock');
@@ -147,15 +162,14 @@ function animaster() {
         };
 
         beat();
-        return setInterval(beat, duration);
-        move(element, moveDuration, {x: 100, y: 20});
+        const intervalId = setInterval(beat, duration);
 
-        moveAndHideTimer = setTimeout(() => {
-            fadeOut(element, duration * 3 / 5);
-        }, moveDuration);
+        return {
+            stop() {
+                clearInterval(intervalId);
+            }
+        };
     }
-
-    /* ---------- RESET FUNCTIONS ---------- */
 
     function resetFadeIn(element) {
         element.style.transitionDuration = null;
