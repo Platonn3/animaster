@@ -95,12 +95,13 @@ function animaster() {
     function resetFadeIn(element) {
         element.style.transitionDuration = null;
         element.style.show = null;
-        element.classList.remove('hide');
-        element.classList.add('show');
 
     }
     function resetFadeOut(element) {
+        element.style.transitionDuration = null;
+        element.style.hide = null;
     }
     function resetMoveAndScale(element) {
+        element.style.transitionDuration = null;
     }
 }
