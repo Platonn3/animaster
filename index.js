@@ -30,6 +30,11 @@ function addListeners() {
             const block = document.getElementById('moveAndHideBlock');
             animator.scale(block, 1000, 1.25);
         });
+    document.getElementById('moveAndHideReset')
+    .addEventListener('click', function () {
+        const block = document.getElementById('moveAndHideBlock');
+        animator.resetMoveAndHide(block);
+    });
 }
 
 function getTransform(translation, ratio) {
@@ -43,25 +48,18 @@ function getTransform(translation, ratio) {
     return result.join(' ');
 }
 
+
 function animaster() {
-    /**
-     * Функция, передвигающая элемент
-     * @param element — HTMLElement, который надо анимировать
-     * @param duration — Продолжительность анимации в миллисекундах
-     * @param translation — объект с полями x и y, обозначающими смещение блока
-     */
+
+    let moveAndHideTimer = null;
+
     function move(element, duration, translation) {
         element.style.transitionDuration = `${duration}ms`;
         element.style.transform = getTransform(translation, null);
     }
 
-    /**
-     * Блок плавно появляется из прозрачного.
-     * @param element — HTMLElement, который надо анимировать
-     * @param duration — Продолжительность анимации в миллисекундах
-     */
     function fadeIn(element, duration) {
-        element.style.transitionDuration =  `${duration}ms`;
+        element.style.transitionDuration = `${duration}ms`;
         element.classList.remove('hide');
         element.classList.add('show');
     }
@@ -72,45 +70,53 @@ function animaster() {
         element.classList.add('hide');
     }
 
-    /**
-     * Функция, увеличивающая/уменьшающая элемент
-     * @param element — HTMLElement, который надо анимировать
-     * @param duration — Продолжительность анимации в миллисекундах
-     * @param ratio — во сколько раз увеличить/уменьшить. Чтобы уменьшить, нужно передать значение меньше 1
-     */
     function scale(element, duration, ratio) {
-        element.style.transitionDuration =  `${duration}ms`;
+        element.style.transitionDuration = `${duration}ms`;
         element.style.transform = getTransform(null, ratio);
     }
 
     function moveAndHide(element, duration) {
-        this.move(element, duration * 2 / 5, {x: 100, y: 20})
-        this.fadeOut(element, duration * 3 / 5)
 
+        const moveDuration = duration * 2 / 5;
+
+        move(element, moveDuration, {x: 100, y: 20});
+
+        moveAndHideTimer = setTimeout(() => {
+            fadeOut(element, duration * 3 / 5);
+        }, moveDuration);
     }
 
-    function showAndHide(element, duration) {
-
-    }
-
-    return {
-        move: move,
-        fadeIn: fadeIn,
-        scale: scale,
-        fadeOut: fadeOut,
-        moveAndHide: moveAndHide,
-    }
+    /* ---------- RESET FUNCTIONS ---------- */
 
     function resetFadeIn(element) {
         element.style.transitionDuration = null;
-        element.style.show = null;
-
+        element.classList.remove('show');
     }
+
     function resetFadeOut(element) {
         element.style.transitionDuration = null;
-        element.style.hide = null;
+        element.classList.remove('hide');
     }
+
     function resetMoveAndScale(element) {
         element.style.transitionDuration = null;
+        element.style.transform = null;
+    }
+
+    function resetMoveAndHide(element) {
+
+        clearTimeout(moveAndHideTimer);
+
+        resetMoveAndScale(element);
+        resetFadeOut(element);
+    }
+
+    return {
+        move,
+        fadeIn,
+        fadeOut,
+        scale,
+        moveAndHide,
+        resetMoveAndHide
     }
 }
