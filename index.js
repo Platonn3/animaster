@@ -46,7 +46,7 @@ function addListeners() {
                 heartBeatingAnimation.stop();
             }
 
-            heartBeatingAnimation = animator.heartBeating(block, 1000);
+            heartBeatingAnimation = animator.heartBeating(block, 1000).play();
         });
 
     document.getElementById('heartBeatingStop')
@@ -62,6 +62,14 @@ function addListeners() {
         const block = document.getElementById('moveAndHideBlock');
         animator.resetMoveAndHide(block);
     });
+
+    document.getElementById('heartBeatingReset')
+        .addEventListener('click', function () {
+            if (heartBeatingAnimation) {
+                heartBeatingAnimation.reset();
+                heartBeatingAnimation = null;
+            }
+        });
 }
 
 function getTransform(translation, ratio) {
@@ -74,9 +82,9 @@ function getTransform(translation, ratio) {
     }
     return result.join(' ');
 }
-function animaster() {
 
-    const _steps = [];
+function animaster() {
+    const _steps = []
 
     function addMove(duration, translation) {
         _steps.push({
@@ -213,6 +221,9 @@ function animaster() {
             .play(element);
     }
 
+    let moveAndHideTimer = null;
+    let moveAndHideInitialState = null;
+
     function moveAndHide(element, duration) {
         return animaster()
             .addMove(duration * 2 / 5, { x: 100, y: 20 })
@@ -234,14 +245,7 @@ function animaster() {
             .addScale(duration / 2, 1)
             .play(element, true);
     }
-
-    function heartBeating(element, duration) {
-        return animaster()
-            .addScale(duration / 2, 1.4)
-            .addColor(red, green, blue);
-            .addScale(duration / 2, 1)
-            .play(element, true);
-    }
+    
     function colorChanging(element, duration) {
         particle.style.backgroundColor =
   `rgb(${red} ${green} ${blue})`;
@@ -256,19 +260,18 @@ function animaster() {
 
     return {
         _steps,
-        addMove,
         addScale,
         addFadeIn,
         addFadeOut,
         addDelay,
-        play,
         move,
-        scale,
         fadeIn,
         fadeOut,
+        scale,
         moveAndHide,
-        showAndHide,
+        addMove,
+        play,
         heartBeating,
-        colorChanging
-    };
+
+    }
 }
