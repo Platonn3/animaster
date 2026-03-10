@@ -1,5 +1,6 @@
 const animator = animaster();
 addListeners();
+
 let heartBeatingAnimation = null;
 
 function addListeners() {
@@ -14,10 +15,13 @@ function addListeners() {
             const block = document.getElementById('fadeOutBlock');
             animator.fadeOut(block, 5000);
         });
+
     document.getElementById('movePlay')
         .addEventListener('click', function () {
             const block = document.getElementById('moveBlock');
-            animator.addMove(500, {x:20, y:20}).play(block);
+            animaster()
+                .addMove(500, { x: 20, y: 20 })
+                .play(block);
         });
 
     document.getElementById('scalePlay')
@@ -46,22 +50,15 @@ function addListeners() {
                 heartBeatingAnimation.stop();
             }
 
-            heartBeatingAnimation = animator.heartBeating(block, 1000).play();
+            heartBeatingAnimation = animator.heartBeating(block, 1000);
         });
 
     document.getElementById('heartBeatingStop')
         .addEventListener('click', function () {
             if (heartBeatingAnimation) {
                 heartBeatingAnimation.stop();
-                heartBeatingAnimation = null;
             }
         });
-
-    document.getElementById('moveAndHideReset')
-    .addEventListener('click', function () {
-        const block = document.getElementById('moveAndHideBlock');
-        animator.resetMoveAndHide(block);
-    });
 
     document.getElementById('heartBeatingReset')
         .addEventListener('click', function () {
@@ -74,20 +71,23 @@ function addListeners() {
 
 function getTransform(translation, ratio) {
     const result = [];
+
     if (translation) {
-        result.push(`translate(${translation.x}px,${translation.y}px)`);
+        result.push(`translate(${translation.x}px, ${translation.y}px)`);
     }
-    if (ratio) {
+
+    if (ratio !== null && ratio !== undefined) {
         result.push(`scale(${ratio})`);
     }
+
     return result.join(' ');
 }
 
 function animaster() {
-    const _steps = []
+    const steps = [];
 
     function addMove(duration, translation) {
-        _steps.push({
+        steps.push({
             type: 'move',
             duration,
             translation
@@ -96,7 +96,7 @@ function animaster() {
     }
 
     function addScale(duration, ratio) {
-        _steps.push({
+        steps.push({
             type: 'scale',
             duration,
             ratio
@@ -105,7 +105,7 @@ function animaster() {
     }
 
     function addFadeIn(duration) {
-        _steps.push({
+        steps.push({
             type: 'fadeIn',
             duration
         });
@@ -113,86 +113,107 @@ function animaster() {
     }
 
     function addFadeOut(duration) {
-        _steps.push({
+        steps.push({
             type: 'fadeOut',
-            duration
-        });
-        return this;
-    }
-    function addColor(duration, red, green, blue) {
-        _steps.push({
-            type: 'color',
             duration
         });
         return this;
     }
 
     function addDelay(duration) {
-        _steps.push({
+        steps.push({
             type: 'delay',
             duration
         });
         return this;
     }
 
+    function addColor(duration, red, green, blue) {
+        steps.push({
+            type: 'color',
+            duration,
+            red,
+            green,
+            blue
+        });
+        return this;
+    }
+
     function play(element, cycled = false) {
+        const initialState = {
+            transitionDuration: element.style.transitionDuration,
+            transform: element.style.transform,
+            backgroundColor: element.style.backgroundColor,
+            className: element.className
+        };
 
-        let delay = 0;
         const timers = [];
+        let isStopped = false;
 
-        const run = () => {
+        function applyStep(step) {
+            if (step.type === 'move') {
+                element.style.transitionDuration = `${step.duration}ms`;
+                element.style.transform = getTransform(step.translation, null);
+            } else if (step.type === 'scale') {
+                element.style.transitionDuration = `${step.duration}ms`;
+                element.style.transform = getTransform(null, step.ratio);
+            } else if (step.type === 'fadeIn') {
+                element.style.transitionDuration = `${step.duration}ms`;
+                element.classList.remove('hide');
+                element.classList.add('show');
+            } else if (step.type === 'fadeOut') {
+                element.style.transitionDuration = `${step.duration}ms`;
+                element.classList.remove('show');
+                element.classList.add('hide');
+            } else if (step.type === 'color') {
+                element.style.transitionDuration = `${step.duration}ms`;
+                element.style.backgroundColor = `rgb(${step.red}, ${step.green}, ${step.blue})`;
+            }
+        }
 
-            delay = 0;
+        function run() {
+            if (isStopped) {
+                return;
+            }
 
-            for (const step of _steps) {
+            let delay = 0;
 
-                const timer = setTimeout(() => {
-
-                    if (step.type === 'move') {
-                        element.style.transitionDuration = `${step.duration}ms`;
-                        element.style.transform = getTransform(step.translation, null);
+            for (const step of steps) {
+                const timerId = setTimeout(() => {
+                    if (isStopped) {
+                        return;
                     }
 
-                    else if (step.type === 'scale') {
-                        element.style.transitionDuration = `${step.duration}ms`;
-                        element.style.transform = getTransform(null, step.ratio);
-                    }
-
-                    else if (step.type === 'fadeIn') {
-                        element.style.transitionDuration = `${step.duration}ms`;
-                        element.classList.remove('hide');
-                        element.classList.add('show');
-                    }
-
-                    else if (step.type === 'fadeOut') {
-                        element.style.transitionDuration = `${step.duration}ms`;
-                        element.classList.remove('show');
-                        element.classList.add('hide');
-                    }
-                    else if (step.type === 'addColor') {
-                        element.style.backgroundColor =`rgb(${step.red} ${green} ${blue})`;
-                        element.style.transitionDuration = `${step.duration}ms`;
-                        element.classList.remove('show');
-                        element.classList.add('hide');
-                    }
-
+                    applyStep(step);
                 }, delay);
 
-                timers.push(timer);
+                timers.push(timerId);
                 delay += step.duration;
             }
 
             if (cycled) {
-                const cycleTimer = setTimeout(run, delay);
-                timers.push(cycleTimer);
+                const cycleTimerId = setTimeout(() => {
+                    run();
+                }, delay);
+
+                timers.push(cycleTimerId);
             }
-        };
+        }
 
         run();
 
         return {
             stop() {
-                timers.forEach(clearTimeout);
+                isStopped = true;
+                timers.forEach((timerId) => clearTimeout(timerId));
+            },
+
+            reset() {
+                this.stop();
+                element.style.transitionDuration = initialState.transitionDuration;
+                element.style.transform = initialState.transform;
+                element.style.backgroundColor = initialState.backgroundColor;
+                element.className = initialState.className;
             }
         };
     }
@@ -221,9 +242,6 @@ function animaster() {
             .play(element);
     }
 
-    let moveAndHideTimer = null;
-    let moveAndHideInitialState = null;
-
     function moveAndHide(element, duration) {
         return animaster()
             .addMove(duration * 2 / 5, { x: 100, y: 20 })
@@ -245,33 +263,29 @@ function animaster() {
             .addScale(duration / 2, 1)
             .play(element, true);
     }
-    
+
     function colorChanging(element, duration) {
-        particle.style.backgroundColor =
-  `rgb(${red} ${green} ${blue})`;
         return animaster()
-            .addScale(duration / 2, 1.4)
-            .addFadeOut(duration / 2)
-            .addScale(duration / 2, 1)
-            .addFadeIn(duration / 2)
+            .addColor(duration / 2, 255, 0, 0)
+            .addColor(duration / 2, 0, 0, 255)
             .play(element, true);
     }
 
-
     return {
-        _steps,
+        addMove,
         addScale,
         addFadeIn,
         addFadeOut,
         addDelay,
+        addColor,
+        play,
         move,
+        scale,
         fadeIn,
         fadeOut,
-        scale,
         moveAndHide,
-        addMove,
-        play,
+        showAndHide,
         heartBeating,
-
-    }
+        colorChanging
+    };
 }
