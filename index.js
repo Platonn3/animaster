@@ -111,6 +111,13 @@ function animaster() {
         });
         return this;
     }
+    function addColor(duration, red, green, blue) {
+        _steps.push({
+            type: 'color',
+            duration
+        });
+        return this;
+    }
 
     function addDelay(duration) {
         _steps.push({
@@ -150,6 +157,12 @@ function animaster() {
                     }
 
                     else if (step.type === 'fadeOut') {
+                        element.style.transitionDuration = `${step.duration}ms`;
+                        element.classList.remove('show');
+                        element.classList.add('hide');
+                    }
+                    else if (step.type === 'addColor') {
+                        element.style.backgroundColor =`rgb(${step.red} ${green} ${blue})`;
                         element.style.transitionDuration = `${step.duration}ms`;
                         element.classList.remove('show');
                         element.classList.add('hide');
@@ -222,6 +235,25 @@ function animaster() {
             .play(element, true);
     }
 
+    function heartBeating(element, duration) {
+        return animaster()
+            .addScale(duration / 2, 1.4)
+            .addColor(red, green, blue);
+            .addScale(duration / 2, 1)
+            .play(element, true);
+    }
+    function colorChanging(element, duration) {
+        particle.style.backgroundColor =
+  `rgb(${red} ${green} ${blue})`;
+        return animaster()
+            .addScale(duration / 2, 1.4)
+            .addFadeOut(duration / 2)
+            .addScale(duration / 2, 1)
+            .addFadeIn(duration / 2)
+            .play(element, true);
+    }
+
+
     return {
         _steps,
         addMove,
@@ -236,6 +268,7 @@ function animaster() {
         fadeOut,
         moveAndHide,
         showAndHide,
-        heartBeating
+        heartBeating,
+        colorChanging
     };
 }
